@@ -46,39 +46,39 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto border-2 border-dashed border-primary/50 hover:border-primary transition-colors">
+    <Card className="w-full mx-auto border-2 border-dashed border-primary/30 hover:border-primary transition-colors bg-card/50 backdrop-blur">
       <CardContent className="p-8">
         {!selectedFile ? (
           <div
             {...getRootProps()}
-            className={`cursor-pointer text-center py-12 transition-all duration-300 ${
+            className={`cursor-pointer text-center py-10 transition-all duration-300 ${
               isDragActive ? 'scale-105' : ''
             }`}
           >
             <input {...getInputProps()} />
             <div className="flex flex-col items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-glow">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-primary">
                 <Upload className="w-10 h-10 text-white" />
               </div>
               <div>
-                <p className="text-xl font-bold mb-2">
-                  {isDragActive ? 'Drop it like it\'s hot!' : 'Drag & drop your resume'}
+                <p className="text-xl font-bold mb-1">
+                  {isDragActive ? 'Drop your resume here' : 'Upload Your Resume'}
                 </p>
-                <p className="text-muted-foreground">or click to browse</p>
+                <p className="text-sm text-muted-foreground">Drag & drop or click to browse</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Supports PDF, DOCX, and TXT files
+              <p className="text-xs text-muted-foreground bg-muted px-4 py-2 rounded-full">
+                PDF, DOCX, or TXT • Max 10MB
               </p>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="font-medium">{selectedFile.name}</p>
+                <p className="font-semibold">{selectedFile.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {(selectedFile.size / 1024).toFixed(2)} KB
                 </p>
@@ -89,6 +89,7 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
               size="icon"
               onClick={clearFile}
               disabled={isProcessing}
+              className="hover:bg-destructive/10 hover:text-destructive"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -96,8 +97,11 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
         )}
         
         {isProcessing && (
-          <div className="mt-4 text-center animate-pulse">
-            <p className="text-sm text-muted-foreground">Processing your resume...</p>
+          <div className="mt-4 text-center">
+            <div className="inline-flex items-center gap-2 text-sm text-primary animate-pulse">
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+              <span className="font-medium">Processing your resume...</span>
+            </div>
           </div>
         )}
       </CardContent>

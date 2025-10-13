@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Flame, Laugh, Brain } from "lucide-react";
+import { Flame, Laugh, Brain, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -70,12 +70,12 @@ export const RoastSamples = () => {
   }
 
   return (
-    <section id="samples" className="py-20 px-4 bg-gradient-warm">
+    <section id="samples" className="py-24 px-4 bg-gradient-to-b from-secondary/20 to-background">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Live Roast Samples</h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            See how our AI transforms bland resume lines into job-winning bullets.
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Real Reviews</h2>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            See what our AI found in real resumes
           </p>
         </div>
 
@@ -90,11 +90,11 @@ export const RoastSamples = () => {
                 <CardHeader className="pb-3">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="roast" className="text-sm font-semibold">
-                      <Flame className="w-4 h-4 mr-1" />
-                      The Roast
+                      <Zap className="w-4 h-4 mr-1" />
+                      The Review
                     </TabsTrigger>
                     <TabsTrigger value="before" className="text-sm">
-                      Before & After
+                      Original
                     </TabsTrigger>
                   </TabsList>
                 </CardHeader>
@@ -106,7 +106,7 @@ export const RoastSamples = () => {
                       <p className="text-sm font-medium mb-4">{sample.original_text}</p>
                     </div>
 
-                    <div className="bg-destructive/10 border-l-4 border-primary rounded-lg p-4">
+                    <div className="bg-primary/5 border-l-4 border-primary rounded-lg p-4">
                       <p className="text-sm text-foreground leading-relaxed">{sample.roast_feedback}</p>
                     </div>
 
