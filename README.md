@@ -75,7 +75,7 @@ RoastMyResume/
    ```env
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    VITE_OPENAI_API_KEY=your_openai_api_key
    ```
 
@@ -139,7 +139,7 @@ RoastMyResume/
 ```env
 VITE_SUPABASE_URL=your_production_supabase_url
 VITE_SUPABASE_ANON_KEY=your_production_anon_key
-VITE_SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
+SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
 VITE_OPENAI_API_KEY=your_openai_api_key
 ```
 
