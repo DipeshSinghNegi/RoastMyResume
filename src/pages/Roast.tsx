@@ -44,7 +44,7 @@ const Roast = () => {
       const { data, error } = await supabase.functions.invoke('roast-resume', {
         body: { resumeText },
         headers: {
-          Authorization: `Bearer ${import.meta.env.SUPABASE_SERVICE_ROLE_KEY}`
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY}`
         }
       });
 
