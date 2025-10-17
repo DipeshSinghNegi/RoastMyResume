@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { UploadZone } from "@/components/UploadZone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Flame, ArrowLeft, Loader2 } from "lucide-react";
+import { Flame, ArrowLeft, Loader2, Smile, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,10 +15,18 @@ interface RoastResult {
 
 const Roast = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [resumeText, setResumeText] = useState("");
   const [roasts, setRoasts] = useState<RoastResult[]>([]);
   const [isRoasting, setIsRoasting] = useState(false);
+
+  // Check if resume text was passed from the home page
+  useEffect(() => {
+    if (location.state?.resumeText) {
+      setResumeText(location.state.resumeText);
+    }
+  }, [location.state]);
 
   const handleRoast = async () => {
     if (!resumeText || resumeText.trim().length === 0) {
@@ -34,7 +42,10 @@ const Roast = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('roast-resume', {
-        body: { resumeText }
+        body: { resumeText },
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY}`
+        }
       });
 
       if (error) {
@@ -56,11 +67,40 @@ const Roast = () => {
         return;
       }
 
-      if (data?.roasts && Array.isArray(data.roasts)) {
-        setRoasts(data.roasts);
+      console.log('Raw response from server:', data);
+      console.log('Type of data:', typeof data);
+      console.log('Type of data.roasts:', typeof data?.roasts);
+      
+      // Handle both parsed JSON and string responses
+      let roastData = data;
+      
+      // If data.roasts is a string (JSON), parse it
+      if (typeof data.roasts === 'string') {
+        try {
+          roastData = JSON.parse(data.roasts);
+        } catch (parseError) {
+          console.error('Failed to parse roasts string:', parseError);
+          throw new Error('Invalid response format from server');
+        }
+      }
+      
+      // If data itself is a string (JSON), parse it
+      if (typeof data === 'string') {
+        try {
+          roastData = JSON.parse(data);
+        } catch (parseError) {
+          console.error('Failed to parse response string:', parseError);
+          throw new Error('Invalid response format from server');
+        }
+      }
+
+      // Ensure we have the correct structure
+      if (roastData?.roasts && Array.isArray(roastData.roasts)) {
+        console.log('Successfully parsed roasts:', roastData.roasts);
+        setRoasts(roastData.roasts);
         
         // Store roasts in database
-        for (const roast of data.roasts) {
+        for (const roast of roastData.roasts) {
           await supabase.from('roasts').insert({
             original_text: roast.original,
             roast_feedback: roast.roast,
@@ -70,8 +110,12 @@ const Roast = () => {
 
         toast({
           title: "Resume roasted! 🔥",
-          description: `Found ${data.roasts.length} areas to improve.`,
+          description: `Found ${roastData.roasts.length} areas to improve.`,
         });
+      } else {
+        console.error('Invalid response structure:', roastData);
+        console.error('Expected roasts array, got:', typeof roastData?.roasts);
+        throw new Error('Invalid response structure from server');
       }
 
     } catch (error) {
@@ -88,7 +132,7 @@ const Roast = () => {
 
   return (
     <div className="min-h-screen bg-gradient-warm py-12 px-4">
-      <div className="container mx-auto max-w-4xl">
+      <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between animate-fade-in">
           <Button
@@ -105,10 +149,33 @@ const Roast = () => {
           </div>
         </div>
 
-        {/* Upload section */}
-        <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <UploadZone onFileSelect={setResumeText} />
-        </div>
+        {/* Upload section - only show if no resume text */}
+        {!resumeText && (
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <UploadZone onFileSelect={setResumeText} />
+          </div>
+        )}
+
+        {/* Resume uploaded confirmation */}
+        {resumeText && roasts.length === 0 && (
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <Card className="border-2 border-primary/30 bg-primary/5">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                    <Flame className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg">Resume Ready for Roasting! 🔥</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your resume has been processed and is ready to get roasted.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Roast button */}
         {resumeText && roasts.length === 0 && (
@@ -144,37 +211,60 @@ const Roast = () => {
               </p>
             </div>
 
-            {roasts.map((roast, index) => (
-              <Card
-                key={index}
-                className="shadow-card animate-fade-in hover-scale"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-sm font-normal text-muted-foreground mb-2">
-                        Original Resume Line:
-                      </CardTitle>
-                      <CardDescription className="text-base text-foreground font-medium">
+            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {roasts.map((roast, index) => (
+                <Card
+                  key={index}
+                  className="shadow-card animate-fade-in hover-scale border-2 hover:border-primary/30 transition-all duration-300 h-fit"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex gap-2">
+                        <div className="px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                          ⚡ The Review
+                        </div>
+                        <div className="px-3 py-1 bg-muted text-muted-foreground text-xs font-semibold rounded-full">
+                          Original
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                        {roast.category}
+                      </span>
+                    </div>
+                    <div className="mb-3">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Original Resume Line:</p>
+                      <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg border break-words">
                         {roast.original}
-                      </CardDescription>
+                      </p>
                     </div>
-                    <span className="ml-4 px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
-                      {roast.category}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-destructive/10 border-l-4 border-primary rounded-lg p-4">
-                    <div className="flex gap-2">
-                      <Flame className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p className="text-sm leading-relaxed">{roast.roast}</p>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="bg-gradient-to-r from-primary/5 to-accent/5 border-l-4 border-primary rounded-lg p-4 mb-4">
+                      <div className="flex gap-2">
+                        <Flame className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <p className="text-sm leading-relaxed font-medium break-words">{roast.roast}</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Reactions:</span>
+                      <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
+                        <Flame className="w-4 h-4" />
+                        <span>0</span>
+                      </div>
+                      <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
+                        <Smile className="w-4 h-4" />
+                        <span>0</span>
+                      </div>
+                      <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
+                        <Brain className="w-4 h-4" />
+                        <span>0</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             <div className="text-center pt-8">
               <Button

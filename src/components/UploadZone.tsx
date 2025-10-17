@@ -3,6 +3,10 @@ import { useDropzone } from "react-dropzone";
 import { FileText, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 interface UploadZoneProps {
   onFileSelect: (text: string) => void;
@@ -12,6 +16,50 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          console.log('PDF file loaded, size:', arrayBuffer.byteLength);
+          
+          const pdf = await pdfjsLib.getDocument({ 
+            data: arrayBuffer,
+            verbosity: 0 // Reduce console output
+          }).promise;
+          
+          console.log('PDF loaded, pages:', pdf.numPages);
+          let fullText = '';
+          
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            fullText += pageText + '\n';
+            console.log(`Page ${i} text length:`, pageText.length);
+          }
+          
+          const extractedText = fullText.trim();
+          console.log('Total extracted text length:', extractedText.length);
+          
+          if (extractedText.length === 0) {
+            throw new Error('No text content found in PDF');
+          }
+          
+          resolve(extractedText);
+        } catch (error) {
+          console.error('PDF extraction error:', error);
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
@@ -20,11 +68,25 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
     setIsProcessing(true);
 
     try {
-      const text = await file.text();
+      let text: string;
+      
+      if (file.type === 'application/pdf') {
+        text = await extractTextFromPDF(file);
+      } else if (file.type === 'text/plain') {
+        text = await file.text();
+      } else {
+        // For DOCX and other formats, try to read as text (basic fallback)
+        text = await file.text();
+      }
+      
+      if (!text || text.trim().length === 0) {
+        throw new Error('No text content found in file');
+      }
+      
       onFileSelect(text);
     } catch (error) {
       console.error('Error reading file:', error);
-      alert('Failed to read file. Please try again.');
+      alert('Failed to read file. Please ensure it\'s a valid PDF, TXT, or DOCX file.');
     } finally {
       setIsProcessing(false);
     }
@@ -100,7 +162,11 @@ export const UploadZone = ({ onFileSelect }: UploadZoneProps) => {
           <div className="mt-4 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-primary animate-pulse">
               <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-              <span className="font-medium">Processing your resume...</span>
+              <span className="font-medium">
+                {selectedFile?.type === 'application/pdf' 
+                  ? 'Extracting text from PDF...' 
+                  : 'Processing your resume...'}
+              </span>
             </div>
           </div>
         )}
