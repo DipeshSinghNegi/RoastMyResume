@@ -1,4 +1,4 @@
-<img width="1210" height="928" alt="Screenshot 2025-10-17 at 11 46 57 PM" src="https://github.com/user-attachments/assets/c3fef449-dfa3-443b-b9ec-a6a2ad42ae22" />
+
 # 🔥 RoastMyResume
 
 An AI-powered resume review platform that provides brutally honest feedback to help you improve your resume. Get roasted by our AI to make your resume stand out!
