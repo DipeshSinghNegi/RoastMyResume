@@ -1,4 +1,4 @@
-
+<img width="1210" height="928" alt="Screenshot 2025-10-17 at 11 46 57 PM" src="https://github.com/user-attachments/assets/c3fef449-dfa3-443b-b9ec-a6a2ad42ae22" />
 # 🔥 RoastMyResume
 
 An AI-powered resume review platform that provides brutally honest feedback to help you improve your resume. Get roasted by our AI to make your resume stand out!
@@ -190,6 +190,10 @@ npm run build
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+   
+<img width="1210" height="928" alt="Screenshot 2025-10-17 at 11 46 57 PM" src="https://github.com/user-attachments/assets/2e8aa035-fc82-4b44-a5e9-d757ad14566e" />
+
+
 
 ### Development Guidelines
 - Follow TypeScript best practices
@@ -197,6 +201,7 @@ npm run build
 - Maintain responsive design principles
 - Add proper error handling
 - Write clear component documentation
+
 
 ## 📝 License
 
